@@ -84,6 +84,9 @@ export default class jobModel {
   }
 
   static newJobPost(body, email) {
+    if (typeof body.skills === "string") {
+      body.skills = Array(body.skills);
+    }
     jobs.push({
       id: jobs.length + 1,
       category: body.category,

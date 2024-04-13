@@ -42,7 +42,7 @@ app.get("/recruiter-login", (req, res) => {
   res.render("recruiter-login", { errorMessage: null });
 });
 
-app.post("/recruiter-login", recruiterController.loginRecruiter);
+app.post("/recruiter-login", recruiterControllerCall.loginRecruiter);
 
 //
 app.get("/recruiter-registration", (req, res) => {
@@ -52,7 +52,7 @@ app.get("/recruiter-registration", (req, res) => {
 app.post(
   "/recruiter-registration",
   validateRequest,
-  recruiterController.addRecruiter
+  recruiterControllerCall.addRecruiter
 );
 
 app.post("/job-display-specific", userController.specificJobDisplay);
@@ -61,9 +61,9 @@ app.get("/job-listing", userController.jobDisplay);
 
 app.get("/job-listing/:id", userController.jobIdDisplay);
 
-app.get("/new-job", setLastVisit, auth, recruiterController.newJobDisplay);
+app.get("/new-job", setLastVisit, auth, recruiterControllerCall.newJobDisplay);
 
-app.post("/new-job", setLastVisit, auth, recruiterController.postNewJob);
+app.post("/new-job", setLastVisit, auth, recruiterControllerCall.postNewJob);
 app.get("/logout", recruiterControllerCall.logout);
 
 app.get("/update-job/:id", auth, recruiterControllerCall.getUpdateJobView);

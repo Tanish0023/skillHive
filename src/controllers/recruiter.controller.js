@@ -2,13 +2,13 @@ import recruiterModel from "../models/recruiter.model.js";
 import jobModel from "../models/jobs.model.js";
 
 export default class recruiterController {
-  static addRecruiter(req, res) {
+  addRecruiter(req, res) {
     recruiterModel.addRecruiterModel(req.body);
 
     res.render("recruiter-login", { errorMessage: null });
   }
 
-  static loginRecruiter(req, res) {
+  loginRecruiter(req, res) {
     if (
       recruiterModel.checkRecruiterDetails(req.body.email, req.body.password)
     ) {
@@ -25,12 +25,13 @@ export default class recruiterController {
     }
   }
 
-  static postNewJob(req, res) {
+  async postNewJob(req, res) {
     jobModel.newJobPost(req.body, req.session.userEmail);
     res.redirect("/job-listing");
+    // res.status(202).send("Job added successfully");
   }
 
-  static newJobDisplay(req, res) {
+  newJobDisplay(req, res) {
     res.render("new-job", { userEmail: req.session.userEmail });
   }
 
