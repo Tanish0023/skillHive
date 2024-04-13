@@ -1,0 +1,192 @@
+<div class="job-display-main-body">
+  <div class="d-flex justify-content-center m-5">
+    <%if(errorMessage){ %>
+    <div class="alert alert-danger" role="alert"><%= errorMessage %></div>
+    <%}%>
+    <div
+      class="jobContainer bg-light border border-1 rounded-5"
+      style="width: 55rem; height: 33rem"
+    >
+      <div class="m-4">
+        <div class="jobHeading fs-2">
+          <span class="text-primary"><%= job.designation %></span>
+          <span>opportunity in</span>
+          <span class="text-success"><%= job.location %></span>
+          <span>at</span>
+          <span class="text-danger"><%= job.companyName %></span>
+        </div>
+
+        <div class="jobbody fs-6 mt-5">
+          <div>
+            <div>
+              <span class="fs-5"><%= job.companyName %></span>
+              <% if(locals.userEmail){%>
+              <span
+                ><a href="/update-job/<%= job.id %>" class="text-primary"
+                  ><i class="fa-solid fa-pen-to-square"></i></a
+              ></span>
+              <span
+                ><a href="/delete-job/<%= job.id %>" class="text-danger"
+                  ><i class="fa-solid fa-trash"></i></a
+              ></span>
+              <%}%>
+            </div>
+            <div>
+              <span><%= job.category %></span>
+              <span class="text-success"><%= job.designation %></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="m-3">
+          <div>
+            <span><i class="fa-solid fa-location-dot"></i></span>
+            <span><%= job.location %></span>
+          </div>
+          <div>
+            <span><i class="fa-solid fa-indian-rupee-sign"></i></span>
+            <span><%= job.salary %></span>
+          </div>
+          <div>
+            <span><i class="fa-solid fa-hourglass-half"></i></span>
+            <span>Apply By: <%= job.applyBy %></span>
+          </div>
+          <div>
+            <span><i class="fa-solid fa-user"></i></span>
+            <span><%= job.totalOpening %></span>
+          </div>
+          <div class="text-danger">
+            <span><i class="fa-solid fa-user-group"></i></span>
+            <span>
+              <% if(locals.userEmail){%>
+              <a
+                href="/applicant-Display/<%= job.id %>"
+                class="text-decoration-none text-danger"
+                >Applicants <%= job.applicantsCount %></a
+              >
+              <%}else{%> Applicants <%= job.applicantsCount %> <%}%>
+            </span>
+          </div>
+          <div class="mt-3">
+            <span
+              ><% (job.skills).forEach((skill)=>{ %>
+              <button type="button" class="btn btn-outline-info btn-sm">
+                <%=skill%>
+              </button>
+              <% }) %></span
+            >
+          </div>
+          <div class="mt-4">
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-toggle="modal"
+              data-bs-target="#staticBackdrop"
+            >
+              Apply Now
+            </button>
+          </div>
+
+          <!-- TODO: Complete this model to submit resume  -->
+
+          <!-- Modal -->
+          <div
+            class="modal fade"
+            id="staticBackdrop"
+            data-bs-backdrop="static"
+            data-bs-keyboard="false"
+            tabindex="-1"
+            aria-labelledby="staticBackdropLabel"
+            aria-hidden="true"
+          >
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="staticBackdropLabel">
+                    Please Submit your Details
+                  </h1>
+                  <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                  ></button>
+                </div>
+
+                <div class="modal-body">
+                  <form
+                    action="/applicantApply/<%= job.id %>"
+                    method="post"
+                    enctype="multipart/form-data"
+                  >
+                    <div class="mb-3">
+                      <label for="name" class="form-label">Full Name</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="name"
+                        placeholder="Enter your Name"
+                        name="name"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="email" class="form-label"
+                        >Email address</label
+                      >
+                      <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        placeholder="Enter your Email"
+                        name="email"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="phoneNumber" class="form-label"
+                        >Phone Number</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="phoneNumber"
+                        placeholder="Enter your Phone number"
+                        name="phoneNumber"
+                        required
+                      />
+                    </div>
+                    <div class="mb-3">
+                      <label for="resume" class="form-label">Resume</label>
+                      <input
+                        class="form-control"
+                        type="file"
+                        id="resume"
+                        placeholder="Submit your Resume"
+                        name="resume"
+                        required
+                      />
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                      Submit
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ! -->
+
+          <div class="mt-5 d-flex">
+            <div
+              class="border border-2 rounded flex-shrink-1 p-1 bg-success bg-gradient text-white"
+            >
+              Posted <%= job.date %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

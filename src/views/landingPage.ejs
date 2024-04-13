@@ -1,0 +1,53 @@
+<div class="main-body">
+  <div class="left-section">
+    <h1><span>Welcome To</span> <span class="text-danger">SkillHive</span></h1>
+
+    <div class="job-types">
+      <div class="job-types-display">
+        Find Jobs in the fields of
+        <span id="element" class="text-lg text-success"></span>
+      </div>
+    </div>
+
+    <div
+      class="user-buttons d-flex justify-content-start flex-md-wrap gap-3 mt-3"
+    >
+      <a class="btn btn-primary" href="/job-listing" role="button"
+        >I'm A Job Seeker</a
+      >
+
+      <!--  -->
+
+      <a type="button" class="btn btn-primary" href="/recruiter-registration">
+        I'm A Recruiter
+      </a>
+
+      <!--  -->
+    </div>
+  </div>
+
+  <div class="right-section">
+    <img src="images\first.svg" alt="landingPage Image" class="img-thumbnail" />
+  </div>
+</div>
+
+<!-- Importing TypeJS -->
+<script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
+<script>
+  var typed = new Typed("#element", {
+    strings: [
+      "Software Engineering",
+      "FrontEnd Developer",
+      "MERN Stack",
+      "Data Analyst",
+      "Business Analyst",
+      "Accounting",
+      "Customer support",
+      "Data entry",
+      "Electrical engineering",
+    ],
+    typeSpeed: 40,
+    loop: true,
+    cursorChar: "|",
+  });
+</script>
