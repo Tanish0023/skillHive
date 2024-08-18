@@ -117,12 +117,19 @@ export default class jobModel {
     }
   }
 
-  static update(jobObj, id, email) {
-    const index = jobs.findIndex(
-      (p) => p.id == id && p.recruiterEmail == email
-    );
+  static async update(jobObj, id, email) {
+    console.log(jobObj);
+    console.log("id: ", id);
+    console.log("email: ", email);
 
-    if (index >= 0) {
+    const index = await jobs.findIndex(
+      (p) => p.id === id && p.recruiterEmail === email
+    );
+    console.log(index);
+
+    if (index === -1) {
+      return false;
+    } else {
       jobs[index] = {
         id: id,
         category: jobObj.category,
@@ -139,8 +146,6 @@ export default class jobModel {
         recruiterEmail: jobs[index]["recruiterEmail"],
       };
       return true;
-    } else {
-      return false;
     }
   }
 

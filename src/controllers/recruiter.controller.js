@@ -65,6 +65,8 @@ export default class recruiterController {
   getUpdateJobView(req, res) {
     const id = req.params.id;
     const jobFound = jobModel.getById(id);
+    console.log(jobFound);
+
     if (jobFound) {
       res.render("update-job", {
         job: jobFound,
