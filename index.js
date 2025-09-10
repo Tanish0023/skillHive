@@ -1,6 +1,7 @@
 import express from "express";
 import ejsLayouts from "express-ejs-layouts";
 import path from "path";
+import connectDB from "./lib/db.js";
 import recruiterController from "./src/controllers/recruiter.controller.js";
 import userController from "./src/controllers/user.controller.js";
 import validateRequest from "./src/middlewares/RecruiterValidation.js";
@@ -9,12 +10,16 @@ import { auth } from "./src/middlewares/auth.middleware.js";
 import cookieParser from "cookie-parser";
 import { setLastVisit } from "./src/middlewares/lastVisit.middleware.js";
 import { uploadFile } from "./src/middlewares/fileUpload.middleware.js";
+import dotenv from "dotenv";
+
+dotenv.config(); 
 
 let recruiterControllerCall = new recruiterController();
 let userControllerCall = new userController();
 
 const app = express();
 
+// -------------------- Middlewares --------------------
 app.use(
   session({
     secret: "SecretKey",
@@ -36,6 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", path.join(path.resolve(), "src", "views"));
 
+// -------------------- Routes --------------------
 app.get("/", userController.renderPage);
 
 app.get("/recruiter-login", (req, res) => {
@@ -44,7 +50,6 @@ app.get("/recruiter-login", (req, res) => {
 
 app.post("/recruiter-login", recruiterControllerCall.loginRecruiter);
 
-//
 app.get("/recruiter-registration", (req, res) => {
   res.render("recruiter-registration", { errorMessage: null });
 });
@@ -56,25 +61,18 @@ app.post(
 );
 
 app.post("/job-display-specific", userController.specificJobDisplay);
-
 app.get("/job-listing", userController.jobDisplay);
-
 app.get("/job-listing/:id", userController.jobIdDisplay);
 
 app.get("/new-job", setLastVisit, auth, recruiterControllerCall.newJobDisplay);
-
 app.post("/new-job", setLastVisit, auth, recruiterControllerCall.postNewJob);
+
 app.get("/logout", recruiterControllerCall.logout);
 
 app.get("/update-job/:id", auth, recruiterControllerCall.getUpdateJobView);
 app.post("/update-job/:id", auth, recruiterControllerCall.postUpdateJob);
 
-app.get(
-  "/delete-job/:id",
-  setLastVisit,
-  auth,
-  recruiterControllerCall.deleteJob
-);
+app.get("/delete-job/:id", setLastVisit, auth, recruiterControllerCall.deleteJob);
 
 app.post(
   "/applicantApply/:id",
@@ -88,6 +86,10 @@ app.get(
   userControllerCall.renderApplicantDisplay
 );
 
-app.listen(3000, () => {
-  console.log("App is listening at 3000");
+
+// connect DB first, then start server
+connectDB().then(() => {
+  app.listen(process.env.PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${process.env.PORT}`);
+  });
 });

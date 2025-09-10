@@ -1,89 +1,122 @@
-import recruiterModel from "../models/recruiter.model.js";
-import jobModel from "../models/jobs.model.js";
+import { Recruiter } from "../models/schema.js";
+import { Job } from "../models/schema.js";
 
 export default class recruiterController {
-  addRecruiter(req, res) {
-    recruiterModel.addRecruiterModel(req.body);
-
-    res.render("recruiter-login", { errorMessage: null });
-  }
-
-  loginRecruiter(req, res) {
-    if (
-      recruiterModel.checkRecruiterDetails(req.body.email, req.body.password)
-    ) {
-      req.session.userEmail = req.body.email;
-
-      return res.render("job-listing", {
-        jobs: jobModel.getJobs(),
-        userEmail: req.session.userEmail,
-      });
-    } else {
-      return res.render("recruiter-login", {
-        errorMessage: "Invalid Credentials",
+  async addRecruiter(req, res) {
+    try {
+      await Recruiter.create(req.body);
+      res.render("recruiter-login", { errorMessage: null });
+    } catch (err) {
+      console.error(err);
+      res.render("recruiter-registration", {
+        errorMessage: "Could not register recruiter",
       });
     }
   }
 
+  async loginRecruiter(req, res) {
+    try {
+      const recruiter = await Recruiter.findOne({
+        email: req.body.email,
+        password: req.body.password,
+      });
+
+      if (recruiter) {
+        req.session.userEmail = recruiter.email;
+        const jobs = await Job.find();
+        return res.render("job-listing", { jobs, userEmail: recruiter.email });
+      } else {
+        return res.render("recruiter-login", {
+          errorMessage: "Invalid Credentials",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Server error");
+    }
+  }
+
   async postNewJob(req, res) {
-    jobModel.newJobPost(req.body, req.session.userEmail);
-    res.redirect("/job-listing");
-    // res.status(202).send("Job added successfully");
+    try {
+      await Job.create({ ...req.body, recruiterEmail: req.session.userEmail });
+      res.redirect("/job-listing");
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Could not add job");
+    }
   }
 
   newJobDisplay(req, res) {
     res.render("new-job", { userEmail: req.session.userEmail });
   }
 
-  deleteJob(req, res) {
-    const id = req.params.id;
-    const productFound = jobModel.getById(id);
-    if (!productFound) {
-      return res.status(401).send("Job not found");
-    }
-    if (jobModel.delete(id, req.session.userEmail)) {
+  async deleteJob(req, res) {
+    try {
+      const result = await Job.findOneAndDelete({
+        _id: req.params.id,
+        recruiterEmail: req.session.userEmail,
+      });
+
+      if (!result) {
+        return res.status(401).send("You are not allowed to Delete this Job");
+      }
+
+      const jobs = await Job.find();
       return res.render("job-listing", {
-        jobs: jobModel.getJobs(),
+        jobs,
         userEmail: req.session.userEmail,
       });
-    } else {
-      return res.status(401).send("You are not allowed to Delete this Job");
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Server error");
     }
   }
 
   logout(req, res) {
     req.session.destroy((err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.redirect("/recruiter-login");
-      }
+      if (err) console.log(err);
+      res.clearCookie("lastVisit");
+      res.redirect("/recruiter-login");
     });
-    res.clearCookie("lastVisit");
   }
 
-  getUpdateJobView(req, res) {
-    const id = req.params.id;
-    const jobFound = jobModel.getById(id);
-    console.log(jobFound);
+  async getUpdateJobView(req, res) {
+    try {
+      const job = await Job.findOne({
+        _id: req.params.id,
+        recruiterEmail: req.session.userEmail,
+      });
 
-    if (jobFound) {
+      if (!job) return res.status(404).send("Job not found");
+
       res.render("update-job", {
-        job: jobFound,
+        job,
         errorMessage: null,
         userEmail: req.session.userEmail,
       });
-    } else {
-      res.status(401).send("Job not found");
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Server error");
     }
   }
 
-  postUpdateJob(req, res) {
-    if (jobModel.update(req.body, req.params.id, req.session.userEmail)) {
-      var jobs = jobModel.getJobs();
-      res.render("job-listing", { jobs });
-    } else {
-      return res.status(401).send("You are not allowed to Update this Job");
+  async postUpdateJob(req, res) {
+    try {
+      const job = await Job.findOneAndUpdate(
+        { _id: req.params.id, recruiterEmail: req.session.userEmail },
+        req.body,
+        { new: true }
+      );
+
+      if (!job) {
+        return res.status(401).send("You are not allowed to Update this Job");
+      }
+
+      const jobs = await Job.find();
+      res.render("job-listing", { jobs, userEmail: req.session.userEmail });
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Server error");
     }
   }
 }

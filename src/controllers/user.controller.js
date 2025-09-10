@@ -1,36 +1,24 @@
-import jobModel from "../models/jobs.model.js";
-import applicantModel from "../models/applicant.model.js";
+import { Job } from "../models/schema.js";
+import { Applicant } from "../models/schema.js";
 import { emailSender } from "../middlewares/emailSender.middleware.js";
 
-// const applicantModelCall = new applicantModel();
-
 export default class userController {
-  static jobDisplay(req, res) {
-    res.render("job-listing", {
-      jobs: jobModel.getJobs(),
-      userEmail: req.session.userEmail,
-    });
+  static async jobDisplay(req, res) {
+    const jobs = await Job.find();
+    res.render("job-listing", { jobs, userEmail: req.session.userEmail });
   }
 
-  static specificJobDisplay(req, res) {
-    res.render("job-listing", {
-      jobs: jobModel.getSpecificJobs(req.body.specificJob),
-      userEmail: req.session.userEmail,
-    });
+  static async specificJobDisplay(req, res) {
+    const jobs = await Job.find({ companyName: req.body.specificJob });
+    res.render("job-listing", { jobs, userEmail: req.session.userEmail });
   }
 
-  static jobIdDisplay(req, res) {
-    const id = req.params.id;
-    const jobFound = jobModel.getById(id);
-    if (jobFound) {
-      res.render("job-Display", {
-        job: jobFound,
-        userEmail: req.session.userEmail,
-
-        errorMessage: null,
-      });
+  static async jobIdDisplay(req, res) {
+    const job = await Job.findById(req.params.id);
+    if (job) {
+      res.render("job-Display", { job, userEmail: req.session.userEmail, errorMessage: null });
     } else {
-      res.status(401).send("Job not found");
+      res.status(404).send("Job not found");
     }
   }
 
@@ -38,28 +26,35 @@ export default class userController {
     res.render("landingPage", { userEmail: req.session.userEmail });
   }
 
-  renderApplicantDisplay(req, res) {
-    const id = req.params.id;
+  async renderApplicantDisplay(req, res) {
+    const { id } = req.params;
     const email = req.session.userEmail;
 
-    if (jobModel.checkRecruiter(id, email)) {
-      const applicants = applicantModel.applicantListDisplay(id);
+    const job = await Job.findOne({ _id: id, recruiterEmail: email });
+    if (!job) return res.status(403).send("You are not allowed!!");
 
-      res.render("applicant-Display", {
-        applicants,
-      });
-    } else {
-      res.status(404).send("You are not allowed!!");
-    }
+    const applicants = await Applicant.find({ jobsApplied: id });
+    res.render("applicant-Display", { applicants });
   }
 
-  apply(req, res) {
+  async apply(req, res) {
     const id = req.params.id;
-
     emailSender(req.body);
 
-    jobModel.updateApplicants(id);
-    applicantModel.addApplicant(req.body, id, req.session.resume);
+    await Job.findByIdAndUpdate(id, { $inc: { applicantsCount: 1 } });
+
+    await Applicant.findOneAndUpdate(
+      { email: req.body.email },
+      {
+        $set: {
+          name: req.body.name,
+          phoneNumber: req.body.phoneNumber,
+          resume: req.file?.filename || "",
+        },
+        $addToSet: { jobsApplied: id },
+      },
+      { upsert: true }
+    );
 
     res.redirect("/job-listing");
   }

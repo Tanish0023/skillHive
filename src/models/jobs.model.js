@@ -1,159 +1,114 @@
-let jobs = [
-  {
-    id: 1,
-    category: "Tech",
-    designation: "MERN Stack",
-    location: "Delhi DL",
-    companyName: "Coding Ninjas",
-    salary: "15-20LPA",
-    totalOpening: "5",
-    skills: ["React", "NodeJS", "Angular", "Express"],
-    applyBy: "10-01-2024",
-    appliedBy: [45, 788],
-    applicantsCount: 2,
-    date: "1/22/2024",
-    recruiterEmail: "johnwick@gmail.com",
-  },
-  {
-    id: 2,
-    category: "Tech",
-    designation: "FrontEnd",
-    location: "Banglore",
-    companyName: "Microsoft",
-    salary: "10-12LPA",
-    totalOpening: "1",
-    skills: ["React", "JS"],
-    applyBy: "30-01-2024",
-    appliedBy: [],
-    applicantsCount: 4,
-    date: "1/22/2024",
-    recruiterEmail: "tanish23aggarwal@gmail.com",
-  },
-  {
-    id: 3,
-    category: "Non-Tech",
-    designation: "Analytics",
-    location: "Delhi DL",
-    companyName: "Amazon",
-    salary: "8-10LPA",
-    totalOpening: "5",
-    skills: ["Pyhton", "SQL"],
-    applyBy: "15-01-2024",
-    appliedBy: [],
-    applicantsCount: 2,
-    date: "1/22/2024",
-    recruiterEmail: "tanish23aggarwal@gmail.com",
-  },
-];
+import { Job } from "./schema.js";
 
 export default class jobModel {
-  static getById(id) {
-    return jobs.find((p) => p.id == id);
+  static async getById(id) {
+    try {
+      const job = await Job.findById(id);
+      return job;
+    } catch (err) {
+      console.error("Error in getById:", err);
+      return null;
+    }
   }
 
-  static getJobs() {
-    return jobs;
+  static async getJobs() {
+    try {
+      return await Job.find();
+    } catch (err) {
+      console.error("Error in getJobs:", err);
+      return [];
+    }
   }
 
-  static checkRecruiter(id, email) {
-    let havePermission = false;
-
-    jobs.forEach((job) => {
-      if (job.id == id && job.recruiterEmail == email) {
-        havePermission = true;
-      }
-    });
-
-    if (havePermission) {
-      return true;
-    } else {
+  static async checkRecruiter(id, email) {
+    try {
+      const job = await Job.findOne({ _id: id, recruiterEmail: email });
+      return !!job;
+    } catch (err) {
+      console.error("Error in checkRecruiter:", err);
       return false;
     }
   }
 
-  static getSpecificJobs(companyName) {
-    let jobsFound = [];
-
-    jobs.forEach((job) => {
-      if (job.companyName.toLowerCase() == companyName.toLowerCase()) {
-        jobsFound.push(job);
-      }
-    });
-
-    return jobsFound;
-  }
-
-  static newJobPost(body, email) {
-    if (typeof body.skills === "string") {
-      body.skills = Array(body.skills);
+  static async getSpecificJobs(companyName) {
+    try {
+      return await Job.find({
+        companyName: { $regex: new RegExp("^" + companyName + "$", "i") },
+      });
+    } catch (err) {
+      console.error("Error in getSpecificJobs:", err);
+      return [];
     }
-    jobs.push({
-      id: jobs.length + 1,
-      category: body.category,
-      designation: body.designation,
-      location: body.location,
-      companyName: body.companyName,
-      salary: body.salary,
-      totalOpening: body.totalOpening,
-      skills: body.skills,
-      applyBy: body.applyBy,
-      appliedBy: [],
-      applicantsCount: 0,
-      date: new Date().toLocaleDateString(),
-      recruiterEmail: email,
-    });
   }
 
-  static delete(id, email) {
-    const index = jobs.findIndex(
-      (p) => p.id == id && p.recruiterEmail == email
-    );
+  static async newJobPost(body, email) {
+    try {
+      if (typeof body.skills === "string") {
+        body.skills = [body.skills];
+      }
 
-    if (index >= 0) {
-      jobs.splice(index, 1);
-      return true;
-    } else {
+      const job = new Job({
+        category: body.category,
+        designation: body.designation,
+        location: body.location,
+        companyName: body.companyName,
+        salary: body.salary,
+        totalOpening: body.totalOpening,
+        skills: body.skills,
+        applyBy: new Date(body.applyBy),
+        appliedBy: [],
+        applicantsCount: 0,
+        recruiterEmail: email,
+      });
+
+      await job.save();
+      return job;
+    } catch (err) {
+      console.error("Error in newJobPost:", err);
+      return null;
+    }
+  }
+
+  static async delete(id, email) {
+    try {
+      const result = await Job.findOneAndDelete({ _id: id, recruiterEmail: email });
+      return !!result;
+    } catch (err) {
+      console.error("Error in delete:", err);
       return false;
     }
   }
 
   static async update(jobObj, id, email) {
-    console.log(jobObj);
-    console.log("id: ", id);
-    console.log("email: ", email);
+    try {
+      const updatedJob = await Job.findOneAndUpdate(
+        { _id: id, recruiterEmail: email },
+        {
+          category: jobObj.category,
+          designation: jobObj.designation,
+          location: jobObj.location,
+          companyName: jobObj.companyName,
+          salary: jobObj.salary,
+          totalOpening: jobObj.totalOpening,
+          skills: jobObj.skills,
+          applyBy: new Date(jobObj.applyBy),
+          date: new Date(),
+        },
+        { new: true }
+      );
 
-    const index = await jobs.findIndex(
-      (p) => p.id === id && p.recruiterEmail === email
-    );
-    console.log(index);
-
-    if (index === -1) {
+      return !!updatedJob;
+    } catch (err) {
+      console.error("Error in update:", err);
       return false;
-    } else {
-      jobs[index] = {
-        id: id,
-        category: jobObj.category,
-        designation: jobObj.designation,
-        location: jobObj.location,
-        companyName: jobObj.companyName,
-        salary: jobObj.salary,
-        totalOpening: jobObj.totalOpening,
-        skills: jobObj.skills,
-        applyBy: jobObj.applyBy,
-        appliedBy: [],
-        applicantsCount: jobs[index]["appliedBy"],
-        date: new Date().toLocaleDateString(),
-        recruiterEmail: jobs[index]["recruiterEmail"],
-      };
-      return true;
     }
   }
 
-  static updateApplicants(id) {
-    jobs.forEach((job) => {
-      if (job.id == id) {
-        job.applicantsCount++;
-      }
-    });
+  static async updateApplicants(id) {
+    try {
+      await Job.findByIdAndUpdate(id, { $inc: { applicantsCount: 1 } });
+    } catch (err) {
+      console.error("Error in updateApplicants:", err);
+    }
   }
 }

@@ -1,36 +1,40 @@
-let recruiters = [
-  {
-    firstname: "John",
-    lastName: "Wick",
-    email: "johnwick@gmail.com",
-    password: "123",
-  },
-  {
-    firstname: "Tanish",
-    lastName: "Aggarwal",
-    email: "tanish23aggarwal@gmail.com",
-    password: "987",
-  },
-];
+import { Recruiter } from "./schema.js";
 
 export default class recruiterModel {
-  static addRecruiterModel(recruiter) {
-    recruiters.push({
-      firstname: recruiter.firstName,
-      lastName: recruiter.lastName,
-      email: recruiter.email,
-      password: recruiter.password,
-    });
+  static async addRecruiterModel(recruiter) {
+    try {
+      const newRecruiter = new Recruiter({
+        firstname: recruiter.firstName,
+        lastName: recruiter.lastName,
+        email: recruiter.email,
+        password: recruiter.password,
+      });
+
+      await newRecruiter.save();
+      return newRecruiter;
+    } catch (err) {
+      console.error("Error in addRecruiterModel:", err);
+      return null;
+    }
   }
 
-  static checkRecruiterDetails(email, password) {
-    const result = recruiters.find(
-      (recruiter) => recruiter.email == email && recruiter.password == password
-    );
-    return result;
+  static async checkRecruiterDetails(email, password) {
+    try {
+      const result = await Recruiter.findOne({ email, password });
+      return result;
+    } catch (err) {
+      console.error("Error in checkRecruiterDetails:", err);
+      return null;
+    }
   }
 
-  recruiterAlreadyExist(email) {
-    return recruiters.find((u) => u.email == email);
+  static async recruiterAlreadyExist(email) {
+    try {
+      const recruiter = await Recruiter.findOne({ email });
+      return recruiter;
+    } catch (err) {
+      console.error("Error in recruiterAlreadyExist:", err);
+      return null;
+    }
   }
 }
